@@ -16,17 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.screens.ChatScreen
 import com.example.ui.screens.DashboardScreen
-import com.example.ui.screens.SettingsScreen
-import com.example.ui.screens.ToolsScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.YuriBackgroundDeep
 import com.example.ui.viewmodel.YuriViewModel
 
 enum class YuriScreen {
     DASHBOARD,
-    CHAT,
-    SETTINGS,
-    TOOLS
+    CHAT
 }
 
 class MainActivity : ComponentActivity() {
@@ -62,23 +58,12 @@ fun YuriApp(
         when (screen) {
             YuriScreen.DASHBOARD -> DashboardScreen(
                 viewModel = viewModel,
-                onNavigateToChat = { currentScreen = YuriScreen.CHAT },
-                onNavigateToSettings = { currentScreen = YuriScreen.SETTINGS },
-                onNavigateToTools = { currentScreen = YuriScreen.TOOLS }
+                onNavigateToChat = { currentScreen = YuriScreen.CHAT }
             )
             YuriScreen.CHAT -> ChatScreen(
                 viewModel = viewModel,
                 onNavigateBack = { currentScreen = YuriScreen.DASHBOARD },
-                onNavigateToSettings = { currentScreen = YuriScreen.SETTINGS }
-            )
-            YuriScreen.SETTINGS -> SettingsScreen(
-                viewModel = viewModel,
-                onNavigateBack = { currentScreen = YuriScreen.DASHBOARD }
-            )
-            YuriScreen.TOOLS -> ToolsScreen(
-                viewModel = viewModel,
-                onNavigateBack = { currentScreen = YuriScreen.DASHBOARD },
-                onNavigateToChat = { currentScreen = YuriScreen.CHAT }
+                onNavigateToSettings = { /* managed via direct settings */ }
             )
         }
     }

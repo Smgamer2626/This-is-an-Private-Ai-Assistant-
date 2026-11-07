@@ -30,11 +30,11 @@ class YuriPreferences(private val context: Context) {
         val KEY_FLOATING_BUBBLE_ENABLED = booleanPreferencesKey("floating_bubble_enabled")
 
         const val DEFAULT_SERVER_HOST = "http://127.0.0.1:8080"
-        const val DEFAULT_MODEL_NAME = "local-gguf"
+        const val DEFAULT_MODEL_NAME = "qwen2.5"
         const val DEFAULT_TEMPERATURE = 0.7f
         const val DEFAULT_MAX_TOKENS = 2048
         const val DEFAULT_SYSTEM_PROMPT =
-            "You are Yuri, a personal AI assistant with a JARVIS-inspired personality. You are intelligent, respectful, concise, curious and technically knowledgeable. You specialize in mathematics, science, electronics, programming, inventions and general assistance. Explain complicated concepts clearly. Never pretend to have access to devices, files or information you cannot access."
+            "You are Yuri, an intelligent personal offline AI assistant powered by Qwen. You are intelligent, respectful, witty, concise and technically knowledgeable. You specialize in mathematics, science, programming, inventions and general assistance. Explain concepts clearly and concisely. Never pretend to have access to devices, files or information you cannot access."
     }
 
     val serverHostFlow: Flow<String> = context.dataStore.data.map {

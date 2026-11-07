@@ -378,10 +378,10 @@ class YuriViewModel(application: Application) : AndroidViewModel(application) {
             1. Open Termux on this device.
             2. Verify `llama-server` is running:
                ```bash
-               ./llama-server -m /path/to/your/model.gguf --host 127.0.0.1 --port 8080 -c 2048
+               ./llama-server -m ~/models/qwen2.5.gguf --host 127.0.0.1 --port 8080 -c 2048
                ```
-            3. Ensure the address and port in **Settings** match your Termux server.
-            4. Tap **Test Connection** in Settings to verify connectivity.
+            3. Ensure the address and port in Settings match your Termux server.
+            4. Tap Test Connection in Settings to verify connectivity.
         """.trimIndent()
     }
 
