@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <!-- Minimized Floating Bubble -->
+    <FrameLayout
+        android:id="@+id/bubble_container"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
+        android:background="@drawable/bg_bubble_glow"
+        android:padding="3dp"
+        android:visibility="visible">
+
+        <ImageView
+            android:id="@+id/bubble_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/yuri_core_bubble"
+            android:contentDescription="YURI Floating Bubble" />
+    </FrameLayout>
+
+    <!-- Emergent Assistant Overlay Card -->
+    <LinearLayout
+        android:id="@+id/expanded_container"
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_floating_hud"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <!-- Header -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="YURI • JARVIS ASSISTANT"
+                android:textColor="#00F0FF"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/btn_close_expanded"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="✕"
+                android:textColor="#FF3366"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:padding="4dp" />
+        </RelativeLayout>
+
+        <!-- Center AI Orb -->
+        <FrameLayout
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
+
+            <ImageView
+                android:id="@+id/emergent_orb"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/yuri_core_bubble"
+                android:contentDescription="Yuri Emergent Orb" />
+        </FrameLayout>
+
+        <!-- Status / Transcript -->
+        <TextView
+            android:id="@+id/txt_emergent_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Awaiting command..."
+            android:textColor="#00FF9D"
+            android:textSize="12sp"
+            android:textAlignment="center" />
+
+        <TextView
+            android:id="@+id/txt_emergent_query"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Say 'Yuri' or speak your question"
+            android:textColor="#E6F4FE"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textAlignment="center" />
+
+        <TextView
+            android:id="@+id/txt_emergent_response"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text=""
+            android:textColor="#90B0D0"
+            android:textSize="13sp"
+            android:maxLines="6"
+            android:scrollbars="vertical" />
+
+        <!-- Actions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <Button
+                android:id="@+id/btn_listen_again"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="SPEAK"
+                android:textColor="#040814"
+                android:backgroundTint="#00F0FF"
+                android:textSize="11sp"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btn_open_app"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="OPEN APP"
+                android:textColor="#00F0FF"
+                android:backgroundTint="#0D1B36"
+                android:textSize="11sp"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

@@ -1,0 +1,6 @@
+{
+  "name": "YURI AI",
+  "description": "Personal Offline AI Assistant with futuristic JARVIS-style HUD and local Termux llama.cpp model integration",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
