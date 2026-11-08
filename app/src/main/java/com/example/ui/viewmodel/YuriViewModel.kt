@@ -1,6 +1,9 @@
 package com.example.ui.viewmodel
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.util.Base64
+import java.io.ByteArrayOutputStream
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.YuriDatabase
@@ -85,6 +88,9 @@ class YuriViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentMessages = MutableStateFlow<List<MessageEntity>>(emptyList())
     val currentMessages: StateFlow<List<MessageEntity>> = _currentMessages.asStateFlow()
 
+    private val _isCameraScannerOpen = MutableStateFlow(false)
+    val isCameraScannerOpen: StateFlow<Boolean> = _isCameraScannerOpen.asStateFlow()
+
     private var activeStreamJob: Job? = null
 
     init {
@@ -135,7 +141,16 @@ class YuriViewModel(application: Application) : AndroidViewModel(application) {
         // Observe speech events
         voiceManager.onFinalTranscript = { transcript ->
             if (transcript.isNotBlank()) {
-                sendMessage(transcript)
+                val lower = transcript.lowercase().trim()
+                if (lower.contains("scan") || lower.contains("what is this") || lower.contains("look at") ||
+                    lower.contains("camera") || lower.contains("analyze this") || lower.contains("what do you see") ||
+                    lower.contains("take a picture") || lower.contains("optical")
+                ) {
+                    _isCameraScannerOpen.value = true
+                    voiceManager.speak("Optical scanner engaged. Frame your target.")
+                } else {
+                    sendMessage(transcript)
+                }
             }
         }
 
@@ -410,6 +425,103 @@ class YuriViewModel(application: Application) : AndroidViewModel(application) {
             voiceManager.stopListening()
         } else {
             voiceManager.startListening()
+        }
+    }
+
+    fun openCameraScanner() {
+        _isCameraScannerOpen.value = true
+    }
+
+    fun closeCameraScanner() {
+        _isCameraScannerOpen.value = false
+    }
+
+    fun analyzeCameraVision(bitmap: Bitmap, prompt: String = "Describe what you see in this camera frame and provide technical analysis.") {
+        viewModelScope.launch {
+            var convId = _activeConversationId.value
+            if (convId == null) {
+                convId = createDefaultConversation()
+            }
+
+            // Encode bitmap to base64 JPEG
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+            val imageBytes = outputStream.toByteArray()
+            val imageBase64 = Base64.encodeToString(imageBytes, Base64.NO_WRAP)
+
+            val queryText = if (prompt.isNotBlank()) prompt else "Optical analysis of target object"
+            val userMsg = MessageEntity(
+                id = UUID.randomUUID().toString(),
+                conversationId = convId,
+                role = "user",
+                content = "[OPTICAL SCAN] $queryText",
+                timestamp = System.currentTimeMillis()
+            )
+            chatDao.insertMessage(userMsg)
+
+            // Gather context & preferences
+            var host = YuriPreferences.DEFAULT_SERVER_HOST
+            var model = YuriPreferences.DEFAULT_MODEL_NAME
+            var autoSpeak = true
+            preferences.serverHostFlow.collectLatest { host = it }
+            preferences.modelNameFlow.collectLatest { model = it }
+            preferences.autoSpeakFlow.collectLatest { autoSpeak = it }
+
+            _isStreaming.value = true
+            _streamingText.value = ""
+            _status.value = YuriStatus.THINKING
+            _isCameraScannerOpen.value = false // dismiss viewfinder to reveal live holographic answer
+
+            val responseBuilder = StringBuilder()
+
+            activeStreamJob?.cancel()
+            activeStreamJob = launch {
+                try {
+                    llamaClient.streamVisionChat(
+                        rawHost = host,
+                        modelName = model,
+                        imageBase64 = imageBase64,
+                        prompt = queryText,
+                        systemInstruction = "You are Yuri, an intelligent vision AI inspired by JARVIS. Analyze the visual frame directly, concisely, and with high technical precision. Identify key objects, text, schematics, or components.",
+                        temperature = 0.4f,
+                        maxTokens = 512
+                    ).collect { token ->
+                        responseBuilder.append(token)
+                        _streamingText.value = responseBuilder.toString()
+                    }
+
+                    val finalContent = responseBuilder.toString().ifBlank {
+                        "Visual scan complete. Target analyzed and catalogued."
+                    }
+
+                    val assistantMsg = MessageEntity(
+                        id = UUID.randomUUID().toString(),
+                        conversationId = convId,
+                        role = "assistant",
+                        content = finalContent,
+                        timestamp = System.currentTimeMillis()
+                    )
+                    chatDao.insertMessage(assistantMsg)
+
+                    if (autoSpeak) {
+                        voiceManager.speak(finalContent)
+                    }
+                } catch (e: Exception) {
+                    val errorAdvice = buildErrorMessage(e, host)
+                    val errorMsg = MessageEntity(
+                        id = UUID.randomUUID().toString(),
+                        conversationId = convId,
+                        role = "assistant",
+                        content = errorAdvice,
+                        timestamp = System.currentTimeMillis()
+                    )
+                    chatDao.insertMessage(errorMsg)
+                } finally {
+                    _isStreaming.value = false
+                    _streamingText.value = ""
+                    _status.value = YuriStatus.ONLINE
+                }
+            }
         }
     }
 

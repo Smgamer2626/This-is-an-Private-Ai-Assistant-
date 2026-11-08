@@ -4,26 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ui.screens.ChatScreen
 import com.example.ui.screens.DashboardScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.YuriBackgroundDeep
 import com.example.ui.viewmodel.YuriViewModel
-
-enum class YuriScreen {
-    DASHBOARD,
-    CHAT
-}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,35 +24,9 @@ class MainActivity : ComponentActivity() {
                     color = YuriBackgroundDeep
                 ) {
                     val yuriViewModel: YuriViewModel = viewModel()
-                    YuriApp(viewModel = yuriViewModel)
+                    DashboardScreen(viewModel = yuriViewModel)
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun YuriApp(
-    viewModel: YuriViewModel,
-    modifier: Modifier = Modifier
-) {
-    var currentScreen by remember { mutableStateOf(YuriScreen.DASHBOARD) }
-
-    Crossfade(
-        targetState = currentScreen,
-        label = "ScreenTransition",
-        modifier = modifier.fillMaxSize()
-    ) { screen ->
-        when (screen) {
-            YuriScreen.DASHBOARD -> DashboardScreen(
-                viewModel = viewModel,
-                onNavigateToChat = { currentScreen = YuriScreen.CHAT }
-            )
-            YuriScreen.CHAT -> ChatScreen(
-                viewModel = viewModel,
-                onNavigateBack = { currentScreen = YuriScreen.DASHBOARD },
-                onNavigateToSettings = { /* managed via direct settings */ }
-            )
         }
     }
 }

@@ -1,6 +1,6 @@
 {
-  "name": "YURI AI",
-  "description": "Personal Offline AI Assistant with futuristic JARVIS-style HUD and local Termux llama.cpp model integration",
+  "name": "Yuri",
+  "description": "Personal Offline AI Assistant powered by Qwen with floating bubble and camera visual analysis",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

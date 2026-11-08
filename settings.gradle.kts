@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "YURI AI"
+rootProject.name = "Yuri"
 
 include(":app")

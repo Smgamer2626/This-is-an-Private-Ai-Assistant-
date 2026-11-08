@@ -288,4 +288,97 @@ class LocalLlamaClient {
             throw IOException("No completion choices returned by model")
         }
     }
+
+    fun streamVisionChat(
+        rawHost: String,
+        modelName: String,
+        imageBase64: String,
+        prompt: String,
+        systemInstruction: String = "You are Yuri, an intelligent vision AI. Analyze what is visible in the camera frame clearly and concisely.",
+        temperature: Float = 0.4f,
+        maxTokens: Int = 512
+    ): Flow<String> = flow {
+        val base = normalizeHost(rawHost)
+        val endpoint = "$base/v1/chat/completions"
+
+        val jsonBody = JSONObject().apply {
+            put("model", modelName)
+            put("stream", true)
+            put("temperature", temperature.toDouble())
+            put("max_tokens", maxTokens)
+
+            val messagesArr = JSONArray()
+            if (systemInstruction.isNotBlank()) {
+                messagesArr.put(JSONObject().apply {
+                    put("role", "system")
+                    put("content", systemInstruction)
+                })
+            }
+
+            val userContent = JSONArray().apply {
+                put(JSONObject().apply {
+                    put("type", "text")
+                    put("text", prompt.ifBlank { "Analyze this object or scene in front of the camera in detail." })
+                })
+                put(JSONObject().apply {
+                    put("type", "image_url")
+                    put("image_url", JSONObject().apply {
+                        put("url", "data:image/jpeg;base64,$imageBase64")
+                    })
+                })
+            }
+
+            messagesArr.put(JSONObject().apply {
+                put("role", "user")
+                put("content", userContent)
+            })
+
+            put("messages", messagesArr)
+        }
+
+        val request = Request.Builder()
+            .url(endpoint)
+            .post(jsonBody.toString().toRequestBody(jsonMediaType))
+            .header("Accept", "text/event-stream")
+            .build()
+
+        var response: Response? = null
+        try {
+            response = okHttpClient.newCall(request).execute()
+            if (!response.isSuccessful) {
+                val errBody = response.body?.string() ?: ""
+                throw IOException("Vision server HTTP ${response.code}: $errBody")
+            }
+
+            val body = response.body ?: throw IOException("Empty response body from vision server")
+            val reader = BufferedReader(InputStreamReader(body.byteStream()))
+            var line: String?
+
+            while (reader.readLine().also { line = it } != null) {
+                val currentLine = line?.trim() ?: continue
+                if (currentLine.isEmpty() || currentLine.startsWith(":")) continue
+                if (currentLine.startsWith("data:")) {
+                    val dataContent = currentLine.removePrefix("data:").trim()
+                    if (dataContent == "[DONE]") break
+                    try {
+                        val chunkObj = JSONObject(dataContent)
+                        val choices = chunkObj.optJSONArray("choices")
+                        if (choices != null && choices.length() > 0) {
+                            val choice = choices.getJSONObject(0)
+                            val delta = choice.optJSONObject("delta")
+                            if (delta != null && delta.has("content")) {
+                                val token = delta.getString("content")
+                                if (token.isNotEmpty()) {
+                                    emit(token)
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {}
+                }
+            }
+        } finally {
+            response?.close()
+        }
+    }.flowOn(Dispatchers.IO)
 }
+
